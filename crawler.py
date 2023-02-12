@@ -1,11 +1,12 @@
+import account
+
 import re
 import requests
 from bs4 import BeautifulSoup as bs
-import pymysql
 
-conn = pymysql.connect(host='127.0.0.1', user='root', password='1234', db='bus', charset='utf8')
+# DB 연결
+conn = account.conn
 cur = conn.cursor()
-
 
 # 공지사항 - '셔틀' 검색 결과 페이지
 keyword = "셔틀"
@@ -17,9 +18,9 @@ posts = soup.select("#board > table > tbody > tr") # 게시판
 pattern = re.compile('&nttNo=[0-9]+') # 게시글 번호 추출 정규식
 
 for post in posts:
-    notice = bool(post.select_one("td:nth-child(1) > strong")) # 공지 게시글 여부 (불필요한 게시글)
+    notice = bool(post.select_one("td:nth-child(1) > strong")) # 게시글이 공지글인지 체크 (불필요한 게시글)
 
-    if notice == False: # 공지 게시글이 아니면
+    if notice == False: # 공지글이 아니면
         # 게시물 객체
         post = post.select_one("td.subject")
 
@@ -37,16 +38,28 @@ for post in posts:
 
         # 새로운 게시글이면
         else:
-            cur.execute(f"INSERT INTO post VALUES({nttNo}, now())")
+            # cur.execute(f"INSERT INTO post VALUES({nttNo}, now())") # 메시지 전송 테스트를 위한 주석
             # 게시물 제목
             title = post.get_text().strip()
-            print(title)
-
             url = f"https://www.cju.ac.kr/www/selectBbsNttView.do?bbsNo=881&nttNo={nttNo}&key=4577"
-            print(url)
 
+            print(title)
+            print(url)
             print(nttNo)
+
+            # 전송 메시지 양식
+            msg = f'''
+\U0001F68C *{title}*
+
+자세히 보기
+{url}
+            '''
+
+            # 텔레그램
+            data = {"chat_id" : account.chat_id, "text": msg, "parse_mode": 'markdown'}
+            url = f"https://api.telegram.org/bot{account.token}/sendMessage?"
+            res = requests.post(url, json=data)
+            # print(res.json())
 
 conn.commit()
 conn.close()
-        
