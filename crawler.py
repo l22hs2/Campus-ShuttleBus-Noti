@@ -41,22 +41,13 @@ for post in posts:
             # cur.execute(f"INSERT INTO post VALUES({nttNo}, now())") # 메시지 전송 테스트를 위한 주석
             # 게시물 제목
             title = post.get_text().strip()
-            url = f"https://www.cju.ac.kr/www/selectBbsNttView.do?bbsNo=881&nttNo={nttNo}&key=4577"
-
             print(title)
-            print(url)
-            print(nttNo)
 
-            # 전송 메시지 양식
-            msg = f'''
-\U0001F68C *{title}*
+            msg = f"{title}"
+            url = f"https://www.cju.ac.kr/www/selectBbsNttView.do?bbsNo=881&nttNo={nttNo}&key=4577"
+            button = {"inline_keyboard" : [[{"text" : "\U0001F68C  자세히 보기", "url" : url}]]}
 
-자세히 보기
-{url}
-            '''
-
-            # 텔레그램
-            data = {"chat_id" : account.chat_id, "text": msg, "parse_mode": 'markdown'}
+            data = {"chat_id" : account.chat_id, "text": msg, "parse_mode": 'markdown', "reply_markup" : button}
             url = f"https://api.telegram.org/bot{account.token}/sendMessage?"
             res = requests.post(url, json=data)
             # print(res.json())
