@@ -14,9 +14,10 @@ print(f"=== {now} ===")
 try:
     load_dotenv()
 
+    # DB 연결
     conn = pymysql.connect(host=os.environ.get('db_host'), user=os.environ.get('db_user'), password=os.environ.get('db_password'), db=os.environ.get('db'), charset='utf8')
     cur = conn.cursor()
-
+    
     # 공지사항 '셔틀' 검색 결과 페이지
     keyword = ""
     board_url = f"https://www.cju.ac.kr/www/selectBbsNttList.do?key=4577&bbsNo=881&integrDeptCode=&searchCtgry=&searchCnd=SJ&searchKrwd={keyword}"
@@ -53,17 +54,25 @@ try:
                 title = post.get_text().strip()
                 print(title)
 
-                msg = f"{title}" # 메시지 내용
+                msg = f"*{title}*" # 메시지 내용
                 url = f"https://www.cju.ac.kr/www/selectBbsNttView.do?bbsNo=881&nttNo={nttNo}&key=4577" # 게시글 링크
                 button = {"inline_keyboard" : [[{"text" : "\U0001F68C  자세히 보기", "url" : url}]]} # 게시글 이동 버튼 속성
 
                 data = {"chat_id" : os.environ.get('chat_id'), "text": msg, "parse_mode": 'markdown', "reply_markup" : button} # api 속성
                 url = f"https://api.telegram.org/bot{os.environ.get('token')}/sendMessage?"
                 requests.post(url, json=data) # 메시지 전송
+    conn.close()
 
 except Exception as e:
     print("오류 발생")
     print(e)
 
+    msg = "\U0001F6A8 *셔틀 정보* - 오류 발생"
+    data = {"chat_id" : os.environ.get('personal_chat_id'), "text": msg, "parse_mode": 'markdown'} # api 속성
+    url = f"https://api.telegram.org/bot{os.environ.get('token')}/sendMessage?"
+    requests.post(url, json=data) # 메시지 전송
+
 finally:
-    conn.close()
+    # 종료 시간 출력
+    now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    print(f"--- {now} ---")
