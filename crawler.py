@@ -1,26 +1,35 @@
-import account
-
+import os
 import re
+import datetime
+
+import pymysql
 import requests
 from bs4 import BeautifulSoup as bs
 from sshtunnel import SSHTunnelForwarder
+from dotenv import load_dotenv
+
+# 시작 시간 출력
+now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+print(f"=== {now} ===")
+
+load_dotenv()
 
 # DB 연결
 server = SSHTunnelForwarder(
-    (account.host),
-    ssh_username = account.ssh_username,
-    ssh_pkey = account.ssh_pkey,
-    ssh_password = account.ssh_password,
-    remote_bind_address = account.remote_bind_address
+    (os.environ.get('ssh_host')),
+    ssh_username = os.environ.get('ssh_username'),
+    ssh_pkey = os.environ.get('ssh_pkey'),
+    ssh_password = os.environ.get('ssh_password'),
+    remote_bind_address = (os.environ.get('remote_bind_address'), int(os.environ.get('remote_bind_port')))
 )
 server.start()
 
 try:
-    conn = account.connect(server)
+    conn = pymysql.connect(host=os.environ.get('db_host'), user=os.environ.get('db_user'), password=os.environ.get('db_password'), db=os.environ.get('db'), charset='utf8', port=server.local_bind_port)
     cur = conn.cursor()
 
     # 공지사항 - '셔틀' 검색 결과 페이지
-    keyword = "셔틀"
+    keyword = ""
     board_url = f"https://www.cju.ac.kr/www/selectBbsNttList.do?key=4577&bbsNo=881&integrDeptCode=&searchCtgry=&searchCnd=SJ&searchKrwd={keyword}"
 
     res = requests.get(board_url)
@@ -49,7 +58,7 @@ try:
 
             # 새로운 게시글이면
             else:
-                cur.execute(f"INSERT INTO shuttle VALUES({nttNo}, now())") # 메시지 전송 테스트를 위한 주석
+                cur.execute(f"INSERT INTO shuttle VALUES({nttNo}, now())")
                 # 게시물 제목
                 title = post.get_text().strip()
                 print(title)
@@ -58,8 +67,8 @@ try:
                 url = f"https://www.cju.ac.kr/www/selectBbsNttView.do?bbsNo=881&nttNo={nttNo}&key=4577"
                 button = {"inline_keyboard" : [[{"text" : "\U0001F68C  자세히 보기", "url" : url}]]}
 
-                data = {"chat_id" : account.chat_id, "text": msg, "parse_mode": 'markdown', "reply_markup" : button}
-                url = f"https://api.telegram.org/bot{account.token}/sendMessage?"
+                data = {"chat_id" : os.environ.get('chat_id'), "text": msg, "parse_mode": 'markdown', "reply_markup" : button}
+                url = f"https://api.telegram.org/bot{os.environ.get('token')}/sendMessage?"
                 requests.post(url, json=data)
 
 except:
