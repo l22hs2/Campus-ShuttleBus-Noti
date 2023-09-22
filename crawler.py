@@ -66,10 +66,10 @@ try:
                 button = {"inline_keyboard" : [[{"text" : "\U0001F68C  자세히 보기", "url" : url}]]} # 게시글 이동 버튼 속성
                 
                 # 서비스 채널
-                # data = {"chat_id" : os.environ.get('chat_id'), "text": msg, "parse_mode": 'markdown', "reply_markup" : button} # api 속성
+                data = {"chat_id" : os.environ.get('chat_id'), "text": msg, "parse_mode": 'markdown', "reply_markup" : button} # api 속성
                 
                 # 점검 채널
-                data = {"chat_id" : os.environ.get('personal_chat_id'), "text": msg, "parse_mode": 'markdown', "reply_markup" : button} # api 속성
+                # data = {"chat_id" : os.environ.get('personal_chat_id'), "text": msg, "parse_mode": 'markdown', "reply_markup" : button} # api 속성
 
                 url = f"https://api.telegram.org/bot{os.environ.get('token')}/sendMessage?"
                 requests.post(url, json=data) # 메시지 전송
