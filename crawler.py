@@ -49,7 +49,7 @@ try:
             if cur.fetchone():
                 break
             # 오류로 인한 다량의 메시지 전송 방지
-            if cnt >= 1:
+            if cnt >= 3:
                 break
 
             # 새로운 게시글이면
