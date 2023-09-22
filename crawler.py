@@ -1,3 +1,4 @@
+# coding=euc-kr
 import os
 import re
 import datetime
@@ -7,72 +8,72 @@ import requests
 from bs4 import BeautifulSoup as bs
 from dotenv import load_dotenv
 
-# ì‹œì‘ ì‹œê°„ ì¶œë ¥
+# ½ÃÀÛ ½Ã°£ Ãâ·Â
 now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 print(f"=== {now} ===")
 
 try:
     load_dotenv()
 
-    # DB ì—°ê²°
+    # DB ¿¬°á
     conn = pymysql.connect(host=os.environ.get('db_host'), user=os.environ.get('db_user'), password=os.environ.get('db_password'), db=os.environ.get('db'), charset='utf8')
     cur = conn.cursor()
     
-    # ê³µì§€ì‚¬í•­ 'ì…”í‹€' ê²€ìƒ‰ ê²°ê³¼ í˜ì´ì§€
-    keyword = ""
+    # °øÁö»çÇ× '¼ÅÆ²' °Ë»ö °á°ú ÆäÀÌÁö
+    keyword = "¼ÅÆ²¹ö½º"
     board_url = f"https://www.cju.ac.kr/www/selectBbsNttList.do?key=4577&bbsNo=881&integrDeptCode=&searchCtgry=&searchCnd=SJ&searchKrwd={keyword}"
 
-    res = requests.get(board_url) # ê³µì§€ì‚¬í•­ í˜ì´ì§€
-    soup = bs(res.text, 'html.parser') # íŒŒì‹±
-    posts = soup.select("#board > table > tbody > tr") # ê²Œì‹œíŒ
-    pattern = re.compile('&nttNo=[0-9]+') # ê²Œì‹œê¸€ ë²ˆí˜¸ ì¶”ì¶œ ì •ê·œì‹
+    res = requests.get(board_url) # °øÁö»çÇ× ÆäÀÌÁö
+    soup = bs(res.text, 'html.parser') # ÆÄ½Ì
+    posts = soup.select("#board > table > tbody > tr") # °Ô½ÃÆÇ
+    pattern = re.compile('&nttNo=[0-9]+') # °Ô½Ã±Û ¹øÈ£ ÃßÃâ Á¤±Ô½Ä
 
     for post in posts:
-        notice = bool(post.select_one("td:nth-child(1) > strong")) # í•´ë‹¹ ê²Œì‹œê¸€ì´ ê³µì§€ê¸€ì¸ì§€ ì²´í¬ (ë¶ˆí•„ìš”í•œ ê²Œì‹œê¸€)
+        notice = bool(post.select_one("td:nth-child(1) > strong")) # ÇØ´ç °Ô½Ã±ÛÀÌ °øÁö±ÛÀÎÁö Ã¼Å© (ºÒÇÊ¿äÇÑ °Ô½Ã±Û)
 
-        if notice == False: # ê³µì§€ê¸€ì´ ì•„ë‹ˆë©´
-            # ê²Œì‹œë¬¼ ê°ì²´
+        if notice == False: # °øÁö±ÛÀÌ ¾Æ´Ï¸é
+            # °Ô½Ã¹° °´Ã¼
             post = post.select_one("td.subject")
 
-            # ê²Œì‹œë¬¼ URL
-            uri = post.select_one("a")["href"] # uri ì „ì²´
-            nttNo = pattern.search(uri).group() # ê²Œì‹œê¸€ ë²ˆí˜¸(&nttNo=*) ë¶€ë¶„ë§Œ ì¶”ì¶œ
-            nttNo = nttNo.split('=')[1] # ê²Œì‹œê¸€ ë²ˆí˜¸ë§Œ ì¶”ì¶œ
+            # °Ô½Ã¹° URL
+            uri = post.select_one("a")["href"] # uri ÀüÃ¼
+            nttNo = pattern.search(uri).group() # °Ô½Ã±Û ¹øÈ£(&nttNo=*) ºÎºĞ¸¸ ÃßÃâ
+            nttNo = nttNo.split('=')[1] # °Ô½Ã±Û ¹øÈ£¸¸ ÃßÃâ
 
-            # ìƒˆë¡œìš´ ê²Œì‹œê¸€ì¸ì§€ í™•ì¸ (DBì— í•´ë‹¹ ê²Œì‹œê¸€ ë²ˆí˜¸ê°€ ìˆëŠ”ì§€)
+            # »õ·Î¿î °Ô½Ã±ÛÀÎÁö È®ÀÎ (DB¿¡ ÇØ´ç °Ô½Ã±Û ¹øÈ£°¡ ÀÖ´ÂÁö)
             cur.execute(f"select 0 from shuttle where post_num={nttNo}")
 
-            # ì´ë¯¸ ì¡´ì¬í•˜ëŠ” ê²Œì‹œê¸€ì´ë©´
+            # ÀÌ¹Ì Á¸ÀçÇÏ´Â °Ô½Ã±ÛÀÌ¸é
             if cur.fetchone(): 
                 break
 
-            # ìƒˆë¡œìš´ ê²Œì‹œê¸€ì´ë©´
+            # »õ·Î¿î °Ô½Ã±ÛÀÌ¸é
             else:
-                cur.execute(f"INSERT INTO shuttle VALUES({nttNo}, now())") # ê²Œì‹œê¸€ ëª©ë¡ì— ì¶”ê°€
+                cur.execute(f"INSERT INTO shuttle VALUES({nttNo}, now())") # °Ô½Ã±Û ¸ñ·Ï¿¡ Ãß°¡
                 conn.commit()
-                # ê²Œì‹œë¬¼ ì œëª©
+                # °Ô½Ã¹° Á¦¸ñ
                 title = post.get_text().strip()
                 print(title)
 
-                msg = f"*{title}*" # ë©”ì‹œì§€ ë‚´ìš©
-                url = f"https://www.cju.ac.kr/www/selectBbsNttView.do?bbsNo=881&nttNo={nttNo}&key=4577" # ê²Œì‹œê¸€ ë§í¬
-                button = {"inline_keyboard" : [[{"text" : "\U0001F68C  ìì„¸íˆ ë³´ê¸°", "url" : url}]]} # ê²Œì‹œê¸€ ì´ë™ ë²„íŠ¼ ì†ì„±
+                msg = f"*{title}*" # ¸Ş½ÃÁö ³»¿ë
+                url = f"https://www.cju.ac.kr/www/selectBbsNttView.do?bbsNo=881&nttNo={nttNo}&key=4577" # °Ô½Ã±Û ¸µÅ©
+                button = {"inline_keyboard" : [[{"text" : "\U0001F68C  ÀÚ¼¼È÷ º¸±â", "url" : url}]]} # °Ô½Ã±Û ÀÌµ¿ ¹öÆ° ¼Ó¼º
 
-                data = {"chat_id" : os.environ.get('chat_id'), "text": msg, "parse_mode": 'markdown', "reply_markup" : button} # api ì†ì„±
+                data = {"chat_id" : os.environ.get('chat_id'), "text": msg, "parse_mode": 'markdown', "reply_markup" : button} # api ¼Ó¼º
                 url = f"https://api.telegram.org/bot{os.environ.get('token')}/sendMessage?"
-                requests.post(url, json=data) # ë©”ì‹œì§€ ì „ì†¡
+                requests.post(url, json=data) # ¸Ş½ÃÁö Àü¼Û
     conn.close()
 
 except Exception as e:
-    print("ì˜¤ë¥˜ ë°œìƒ")
+    print("¿À·ù ¹ß»ı")
     print(e)
 
-    msg = "\U0001F6A8 *ì…”í‹€ ì •ë³´* - ì˜¤ë¥˜ ë°œìƒ"
-    data = {"chat_id" : os.environ.get('personal_chat_id'), "text": msg, "parse_mode": 'markdown'} # api ì†ì„±
+    msg = "\U0001F6A8 *Ã»ÁÖ´ë ¼ÅÆ² Á¤º¸* - ¿À·ù ¹ß»ı"
+    data = {"chat_id" : os.environ.get('personal_chat_id'), "text": msg, "parse_mode": 'markdown'} # api ¼Ó¼º
     url = f"https://api.telegram.org/bot{os.environ.get('token')}/sendMessage?"
-    requests.post(url, json=data) # ë©”ì‹œì§€ ì „ì†¡
+    requests.post(url, json=data) # ¸Ş½ÃÁö Àü¼Û
 
 finally:
-    # ì¢…ë£Œ ì‹œê°„ ì¶œë ¥
+    # Á¾·á ½Ã°£ Ãâ·Â
     now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     print(f"--- {now} ---")
