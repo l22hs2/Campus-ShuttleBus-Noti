@@ -7,6 +7,7 @@ import pymysql
 import requests
 from bs4 import BeautifulSoup as bs
 from dotenv import load_dotenv
+from messaging import main
 
 # 시작 시간 출력
 now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -31,7 +32,7 @@ try:
     cnt = 0
 
     for post in posts:
-        notice = bool(post.select_one("td:nth-child(1) > strong")) # 해당 게시글이 공지글인지 체크 (불필요한 게시글)
+        notice = bool(post.select_one("td:nth-child(1) > strong")) # 해당 게시글이 공지글(불필요한 게시글)인지 체크 
 
         if notice == False: # 공지글이 아니면
             # 게시물 객체
@@ -55,24 +56,30 @@ try:
             # 새로운 게시글이면
             else:
                 cnt += 1
-                cur.execute(f"INSERT INTO shuttle VALUES({nttNo}, now())") # 게시글 목록에 추가
-                conn.commit()
+
                 # 게시물 제목
                 title = post.get_text().strip()
                 print(title)
 
-                msg = f"*{title}*" # 메시지 내용
-                url = f"https://www.cju.ac.kr/www/selectBbsNttView.do?bbsNo=881&nttNo={nttNo}&key=4577" # 게시글 링크
-                button = {"inline_keyboard" : [[{"text" : "\U0001F68C  자세히 보기", "url" : url}]]} # 게시글 이동 버튼 속성
+                # DB에 추가
+                cur.execute(f"INSERT INTO shuttle VALUES({nttNo}, '{title}', now())")
+                conn.commit()
+
+                main(title)
+
+                # # 텔레그램 메시지 전송 부
+                # msg = f"*{title}*" # 메시지 내용
+                # url = f"https://www.cju.ac.kr/www/selectBbsNttView.do?bbsNo=881&nttNo={nttNo}&key=4577" # 게시글 링크
+                # button = {"inline_keyboard" : [[{"text" : "\U0001F68C  자세히 보기", "url" : url}]]} # 게시글 이동 버튼 속성
                 
-                # 서비스 채널
-                data = {"chat_id" : os.environ.get('chat_id'), "text": msg, "parse_mode": 'markdown', "reply_markup" : button} # api 속성
+                # # 서비스 채널
+                # # data = {"chat_id" : os.environ.get('chat_id'), "text": msg, "parse_mode": 'markdown', "reply_markup" : button} # api 속성
                 
-                # 점검 채널
+                # # 점검 채널
                 # data = {"chat_id" : os.environ.get('personal_chat_id'), "text": msg, "parse_mode": 'markdown', "reply_markup" : button} # api 속성
 
-                url = f"https://api.telegram.org/bot{os.environ.get('token')}/sendMessage?"
-                requests.post(url, json=data) # 메시지 전송
+                # url = f"https://api.telegram.org/bot{os.environ.get('token')}/sendMessage?"
+                # requests.post(url, json=data) # 메시지 전송
     conn.close()
 
 except Exception as e:
