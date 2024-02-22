@@ -14,7 +14,7 @@ now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 print(f"=== {now} ===")
 
 try:
-    load_dotenv()
+    load_dotenv('../Account/.env')
 
     # DB ¿¬°á
     conn = pymysql.connect(host=os.environ.get('db_host'), user=os.environ.get('db_user'), password=os.environ.get('db_password'), db=os.environ.get('db'), charset='utf8')

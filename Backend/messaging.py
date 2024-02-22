@@ -1,4 +1,3 @@
-import argparse
 import json
 import requests
 import google.auth.transport.requests
@@ -18,7 +17,7 @@ def _get_access_token():
   :return: Access token.
   """
   credentials = service_account.Credentials.from_service_account_file(
-    'serviceAccountKey.json', scopes=SCOPES)
+    '../Account/serviceAccountKey.json', scopes=SCOPES)
   request = google.auth.transport.requests.Request()
   credentials.refresh(request)
   return credentials.token
