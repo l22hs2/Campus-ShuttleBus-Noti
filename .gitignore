@@ -3,3 +3,4 @@ serviceAccountKey.json
 __pycache__
 Account
 del
+pubspec.lock

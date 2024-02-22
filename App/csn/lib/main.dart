@@ -21,11 +21,11 @@
 //   }
 // }
 
-import 'package:csn/screen/bus_schedule.dart';
+import 'package:csn/screens/bus_schedule.dart';
 import 'package:flutter/material.dart';
 
-import 'screen/campus_map.dart';
-import 'screen/home_screen.dart';
+import 'screens/campus_map.dart';
+import 'screens/home_screen.dart';
 
 /// Flutter code sample for [NavigationBar].
 
@@ -89,7 +89,7 @@ class _NavigationExampleState extends State<NavigationExample> {
       ),
       body: <Widget>[
         const BusSchedule(),
-        const HomeScreen(),
+        HomeScreen(),
         const CampusMap(),
       ][currentPageIndex],
     );
